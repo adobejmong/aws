@@ -29,6 +29,12 @@ private
 def elb
   region = instance_availability_zone
   region = region[0, region.length-1]
-  @@elb ||= RightAws::ElbInterface.new(new_resource.aws_access_key, new_resource.aws_secret_access_key, { :logger => Chef::Log, :region => region })
+  
+  # Right Scale creates an incorrect URL for the ELBs. See: https://github.com/rightscale/right_aws/issues/149
+  # Specify our endpoint here (http://docs.aws.amazon.com/general/latest/gr/rande.html#elb_region)
+  aws_elb_endpoint = "https://elasticloadbalancing." + region + ".amazonaws.com"
+  Chef::Log.debug("Using AWS ELB endpoint: " + aws_elb_endpoint)
+  
+  @@elb ||= RightAws::ElbInterface.new(new_resource.aws_access_key, new_resource.aws_secret_access_key, { :logger => Chef::Log, :region => region, :endpoint_url => aws_elb_endpoint })
 end
 
